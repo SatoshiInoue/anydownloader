@@ -163,9 +163,11 @@ public abstract class DataModel {
 	 * Alert all listeners as the data is being filled.
 	 */
 	public void onFetchProgress(final int nBytesDownloaded, final int totalBytes) {
+		if (Configuration.ALLOW_LOGGING)
+			Log.d(TAG, "onFetchProgress" + nBytesDownloaded + "-" + totalBytes);
 		//Check the threshold to update the listeners
-		int threshold = totalBytes / 100;
-		if (nBytesDownloaded % threshold == 0) {
+		//int threshold = totalBytes / 100;
+		//if (nBytesDownloaded % threshold == 0) {
 			if (!isDataComplete) {	
 				synchronized (listeners) {
 					//iterate through all the listeners and alert each one there is an update
@@ -174,7 +176,7 @@ public abstract class DataModel {
 					}	
 				}
 			}
-		}
+		//}
 	}
 	
 	/**

@@ -8,6 +8,14 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
+    <TextView
+        android:id="@+id/downloadTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/testImageView"
+        android:layout_below="@+id/testImageView"
+        android:text="Downloading Image" />
+
     <ImageView
         android:id="@+id/testImageView"
         android:layout_width="wrap_content"
@@ -16,12 +24,34 @@
         android:layout_alignParentTop="true"
         android:src="@drawable/ic_launcher" />
 
-    <TextView
-        android:id="@+id/testTextView"
-        android:layout_width="wrap_content"
+    <ProgressBar
+        android:id="@+id/downloadProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/testImageView"
-        android:layout_below="@+id/testImageView"
-        android:text="@string/hello_world" />
+        android:layout_alignLeft="@+id/downloadTextView"
+        android:layout_below="@+id/downloadTextView" />
+
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/downloadProgressBar"
+        android:layout_marginLeft="14dp"
+        android:layout_marginTop="22dp" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/testTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="62dp"
+                android:text="@string/hello_world" />
+        </LinearLayout>
+    </ScrollView>
 
 </RelativeLayout>

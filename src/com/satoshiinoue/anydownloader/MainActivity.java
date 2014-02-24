@@ -16,6 +16,7 @@ import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements DataModelListener {
@@ -24,6 +25,7 @@ public class MainActivity extends Activity implements DataModelListener {
 	
 	private TextView testTextView;
 	private ImageView testImageView;
+	private ProgressBar downloadProgressBar;
 	private DataModel testModel;
 	private DataModel testImageModel;
 	
@@ -33,6 +35,7 @@ public class MainActivity extends Activity implements DataModelListener {
 		setContentView(R.layout.activity_main);
 		testTextView = (TextView) findViewById(R.id.testTextView);
 		testImageView = (ImageView) findViewById(R.id.testImageView);
+		downloadProgressBar = (ProgressBar) findViewById(R.id.downloadProgressBar);
 		
 		testModel = DataModelManager.getInstance().retrieveModel("http://www.w3schools.com/xml/note.xml", this.getApplicationContext(), ModelType.XMLModel);
 		//testModel = DataModelManager.getInstance().retrieveModel("http://google.com", this.getApplicationContext(), ModelType.TextModel);
@@ -45,9 +48,9 @@ public class MainActivity extends Activity implements DataModelListener {
 			testTextView.setText(((TextModel) testModel).getTextData());
 		}
 		
-		testImageModel = DataModelManager.getInstance().retrieveModel("https://www.google.com/images/srpr/logo5w.png", this.getApplicationContext(), ModelType.FileModel);
+		testImageModel = DataModelManager.getInstance().retrieveModel("https://www.google.com/images/srpr/logo11w.png", this.getApplicationContext(), ModelType.FileModel);
 		if (!testImageModel.isDataComplete()) {
-			testImageModel.fetch(this, false);
+			testImageModel.fetch(this, true);
 		} else {
 			//create a drawable
 			final Drawable drawable = Drawable.createFromPath(((FileModel) testImageModel).getPathOnDisk());
@@ -96,9 +99,16 @@ public class MainActivity extends Activity implements DataModelListener {
 	}
 
 	@Override
-	public void onFetchProgress(final DataModel model, final int nBytesDownloaded,
-			final int totalBytes) {
+	public void onFetchProgress(final DataModel model, final int nBytesDownloaded, final int totalBytes) {
 		
+		if (Configuration.ALLOW_LOGGING)
+			Log.d(TAG, "onFetchProgress" + (int) (((double)nBytesDownloaded/totalBytes)*100) );
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				downloadProgressBar.setProgress((int) (((double)nBytesDownloaded/totalBytes)*100));
+			}
+		});	
 	}
 
 	@Override
