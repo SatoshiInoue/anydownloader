@@ -42,7 +42,7 @@ public class MainActivity extends Activity implements DataModelListener {
 		} else {
 			//testTextView.setText(((TextModel) testModel).getTextData());
 			//testTextView.setText(((XMLModel) testModel).getTextData());
-			testTextView.setText(((JSONModel) testModel).getTextData());
+			testTextView.setText(((TextModel) testModel).getTextData());
 		}
 		
 		testImageModel = DataModelManager.getInstance().retrieveModel("https://www.google.com/images/srpr/logo5w.png", this.getApplicationContext(), ModelType.FileModel);
