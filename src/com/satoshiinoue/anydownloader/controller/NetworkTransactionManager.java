@@ -1,6 +1,7 @@
 package com.satoshiinoue.anydownloader.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
@@ -46,7 +47,7 @@ public class NetworkTransactionManager {
 	// The fixed pool of threads used to process network transactions
 	final ExecutorService mThreadPool = Executors.newFixedThreadPool(NetworkConstants.NETWORK_THREAD_POOL_SIZE);
 
-	private Vector<DataModel> runningRequests = new Vector<DataModel>();
+	private ArrayList<DataModel> runningRequests = new ArrayList<DataModel>();
 
 	private HashMap<Integer, String> errorHashMap;
 

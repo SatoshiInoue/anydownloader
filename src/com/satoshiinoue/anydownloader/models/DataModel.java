@@ -2,8 +2,11 @@ package com.satoshiinoue.anydownloader.models;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Vector;
 
+import org.apache.http.Header;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -24,13 +27,17 @@ import android.util.Log;
  */
 public abstract class DataModel {
 	private static final String TAG = "DataModel";
-	private Vector<DataModelListener> listeners = new Vector<DataModelListener>();
+	
+	private int id;//unique ID for this object
+	private LinkedList<DataModelListener> listeners = new LinkedList<DataModelListener>();
 	protected boolean isDataComplete = false;
 	private boolean isRunning = false;
 	private boolean showProgress = false;
 	protected String url = null;
 	private HttpUriRequest httpUriRequest = null;
 	private UrlEncodedFormEntity formEntity = null;
+	private HashMap<String, String> header = null;
+	protected Header[] responseHeaders;
 	//private ModelType modelType = null;
 	//private NetworkTransaction networkTransaction = null;
 	
@@ -42,12 +49,11 @@ public abstract class DataModel {
 	public DataModel(final String url, final Context appContext) {
 		this.url = url;
 		this.appContext = appContext;
+		id = (int) (1000*Math.random()) + url.length();
 	}
-	/*
-	public DataModel(String url, ModelType modelType) {
-		this.url = url;
-		this.modelType = modelType;
-	}*/
+	public int getId() {
+		return this.id;
+	}
 	
 	/**
 	 * Retrieve the URL for the requested data
@@ -69,7 +75,12 @@ public abstract class DataModel {
 	public HttpUriRequest getHttpUriRequest() {
 		return httpUriRequest;
 	}
-	
+	public HashMap<String, String> getHeader() {
+		return header;
+	}
+	public void setResponseHeaders(final Header[] responseHeaders) {
+		this.responseHeaders = responseHeaders;
+	}
 	/**
 	 * Check if data has been set on this model
 	 *
@@ -113,7 +124,7 @@ public abstract class DataModel {
 	 * Remove all listeners associated with this model
 	 */
 	public void removeAllListeners() {
-		listeners.removeAllElements();
+		listeners.removeAll(listeners);
 	}
 	/**
 	 * This should be defined in the child class b/c the data varies (i.e. XML, JSON, file (path), etc..)
@@ -130,6 +141,25 @@ public abstract class DataModel {
 	public void fetch(final DataModelListener listener, final boolean showProgress) {
 		//Set the method type
 		httpUriRequest = HttpTransactionDownloader.createHttpUriRequest("GET", url, null);
+		//Prepare outputStream
+		prepareOutputStream();
+		//outputStream = new ByteArrayOutputStream();
+		isRunning = true;
+		this.showProgress = showProgress;
+		
+		listeners.add(listener);
+		//Invoke download
+		NetworkTransactionManager.getInstance(appContext).enqueueFetch(this);
+	}
+	/**
+	 * Get data from the URL with header
+	 */
+	public void fetch(final DataModelListener listener, final boolean showProgress, final HashMap<String, String> header) {
+		//Set the method type
+		httpUriRequest = HttpTransactionDownloader.createHttpUriRequest("GET", url, null);
+		//Set header
+		this.header = header;
+		
 		//Prepare outputStream
 		prepareOutputStream();
 		//outputStream = new ByteArrayOutputStream();

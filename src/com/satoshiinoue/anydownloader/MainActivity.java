@@ -1,5 +1,6 @@
 package com.satoshiinoue.anydownloader;
 
+import com.satoshiinoue.anydownloader.RequestService.RequestServiceBinder;
 import com.satoshiinoue.anydownloader.models.DataModel;
 import com.satoshiinoue.anydownloader.models.DataModelListener;
 import com.satoshiinoue.anydownloader.models.DataModelManager;
@@ -11,10 +12,14 @@ import com.satoshiinoue.anydownloader.models.XMLModel;
 import com.satoshiinoue.anydownloader.utilities.Configuration;
 
 import android.os.Bundle;
+import android.os.IBinder;
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
-import android.view.Menu;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -29,6 +34,26 @@ public class MainActivity extends Activity implements DataModelListener {
 	private DataModel testModel;
 	private DataModel testImageModel;
 	
+	private RequestService mService;
+	private boolean isBound;
+	private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+	    public void onServiceConnected(ComponentName name, IBinder service) {
+	    	Log.d(TAG, "onServiceConnected");
+	    	RequestServiceBinder binder = (RequestServiceBinder) service;
+	    	mService = binder.getService();
+	        //isBound = true;
+	    	DataModel serviceModel = DataModelManager.getInstance().retrieveModel("http://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg", getApplicationContext(), ModelType.FileModel);
+	    	mService.fetch(serviceModel, true, null);
+	    }
+	    
+	    public void onServiceDisconnected(ComponentName name) {
+	    	Log.d(TAG, "onServiceDisconnected");
+	        //isBound = false;
+	    }
+	    
+    };
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -37,11 +62,14 @@ public class MainActivity extends Activity implements DataModelListener {
 		testImageView = (ImageView) findViewById(R.id.testImageView);
 		downloadProgressBar = (ProgressBar) findViewById(R.id.downloadProgressBar);
 		
-		testModel = DataModelManager.getInstance().retrieveModel("http://www.w3schools.com/xml/note.xml", this.getApplicationContext(), ModelType.XMLModel);
+		Intent intent = new Intent(this, RequestService.class);
+		isBound = bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        Log.d(TAG, "isBound - onServiceConnected");
+		//testModel = DataModelManager.getInstance().retrieveModel("http://www.w3schools.com/xml/note.xml", this.getApplicationContext(), ModelType.XMLModel);
 		//testModel = DataModelManager.getInstance().retrieveModel("http://google.com", this.getApplicationContext(), ModelType.TextModel);
-		//testModel = DataModelManager.getInstance().retrieveModel("http://serene-sierra-8637.herokuapp.com/wines", this.getApplicationContext(), ModelType.JSONModel);
+		testModel = DataModelManager.getInstance().retrieveModel("http://gomashup.com/json.php?fds=geo/usa/zipcode/state/IL", this.getApplicationContext(), ModelType.JSONModel);
 		if (!testModel.isDataComplete()) {
-			testModel.fetch(this, false);
+		//	testModel.fetch(this, false);
 		} else {
 			//testTextView.setText(((TextModel) testModel).getTextData());
 			//testTextView.setText(((XMLModel) testModel).getTextData());
@@ -50,19 +78,24 @@ public class MainActivity extends Activity implements DataModelListener {
 		
 		testImageModel = DataModelManager.getInstance().retrieveModel("https://www.google.com/images/srpr/logo11w.png", this.getApplicationContext(), ModelType.FileModel);
 		if (!testImageModel.isDataComplete()) {
-			testImageModel.fetch(this, true);
+		//	testImageModel.fetch(this, true);
 		} else {
 			//create a drawable
 			final Drawable drawable = Drawable.createFromPath(((FileModel) testImageModel).getPathOnDisk());
 			testImageView.setImageDrawable(drawable);
 		}
+		
+		//DataModel serviceModel = DataModelManager.getInstance().retrieveModel("http://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg", this.getApplicationContext(), ModelType.FileModel);
+	//	if (isBound)
+		//	mService.fetch(serviceModel, true);
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		//stopService(new Intent(getActivity(), RequestService.class));
+		unbindService(mServiceConnection);
 	}
 
 	@Override

@@ -11,6 +11,9 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.ConnectionReuseStrategy;
@@ -173,12 +176,19 @@ public class HttpTransactionDownloader
 		// Transaction is beginning
 		HttpUriRequest request = dataModel.getHttpUriRequest();
 		HttpResponse response = null;
-		/*
-		request.addHeader("key", "value");
-		*/
+		
+		HashMap<String, String> header = dataModel.getHeader();
+		if (header != null) {
+			Iterator<Entry<String, String>> it = header.entrySet().iterator();
+			while (it.hasNext()) { 
+				Entry<String, String> pairs = (Entry<String, String>) it.next();
+				request.addHeader(pairs.getKey(), pairs.getValue());
+			}
+		}
+		
+		
 		// Sign the request and execute it
-		try 
-		{			
+		try {			
 			response = client.execute(request);			
 		}
 		catch (Exception e) {
@@ -186,10 +196,10 @@ public class HttpTransactionDownloader
 				Log.e(TAG, "Exception thrown when executing request");
 			}
 			e.printStackTrace();
-
 			// Pass the exception on to the caller
 			throw e;
 		}
+		dataModel.setResponseHeaders(response.getAllHeaders());
 		
 		if (Configuration.ALLOW_LOGGING) {
 			Log.i(TAG, "Status line: " + response.getStatusLine());
@@ -305,9 +315,6 @@ public class HttpTransactionDownloader
 				Log.i(TAG, "(HTTP 200) All OK");
 			}
 			// The transaction has been completed
-			
-			if (!isCancelled.get())
-				Log.e(TAG, "NOT canceling for " + dataModel.getDataURL());
 			dataModel.onFetchSuccess();
 			return;
 		}

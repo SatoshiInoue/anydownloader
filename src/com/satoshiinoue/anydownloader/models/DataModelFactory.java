@@ -5,8 +5,7 @@ import android.content.Context;
 /**
  * Used to construct DataModel objects based on type.
  */
-public class DataModelFactory 
-{
+public class DataModelFactory {
 	/**
 	 * Constructs a DataModel instance based on the given type.
 	 * 

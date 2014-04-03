@@ -1,25 +1,14 @@
 package com.satoshiinoue.anydownloader.models;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.net.URLDecoder;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
+import org.apache.http.Header;
 
 import com.satoshiinoue.anydownloader.utilities.Configuration;
+import com.satoshiinoue.anydownloader.utilities.ContentDispositionParser;
 
 import android.content.Context;
 import android.util.Log;
@@ -46,8 +35,8 @@ public class FileModel extends DataModel {
 		try {
 			// TODO: should we be storing images in a subdirectory?
 			String decodedUrl = URLDecoder.decode(url);
-			String tmpFilename = decodedUrl.substring(decodedUrl.lastIndexOf('/') + 1);
-			outputStream = appContext.openFileOutput(tmpFilename, Context.MODE_PRIVATE);
+			String tmpFilename = decodedUrl.substring(decodedUrl.lastIndexOf('/') + 1) + ".apk";
+			outputStream = appContext.openFileOutput(tmpFilename, Context.MODE_WORLD_READABLE);
 			tempFile = new File(appContext.getFilesDir().getAbsolutePath() + "/" + tmpFilename);
 			tempFile.deleteOnExit();
 		} 
@@ -57,6 +46,7 @@ public class FileModel extends DataModel {
 		}
 	}
 	
+	
 	@Override
 	public void onFetchSuccess() {
 		if (Configuration.ALLOW_LOGGING) {
@@ -64,12 +54,23 @@ public class FileModel extends DataModel {
 		}
 		fillData();
 		super.onFetchSuccess();
-	}
+	}	
 
 	@Override
 	protected void fillData() {
 		isDataComplete = true;
 		pathOnDisk = tempFile.getAbsolutePath();
+		if (responseHeaders != null) {
+			for (Header header: responseHeaders) {
+				if (header.getName().equalsIgnoreCase("Content-Disposition")) {
+					Log.d(TAG, header.getValue());
+					//Log.d(TAG, ContentDispositionParser.getValue(header.getValue(), "filename"));
+					renameFile(ContentDispositionParser.getValue(header.getValue(), "filename"));
+				}
+			}
+		}
+		//pathOnDisk = tempFile.getAbsolutePath();
+		Log.d(TAG, pathOnDisk);
 		
 		//Bug fix for FileNotFoundException (Too many open files) 
 		try {
@@ -79,7 +80,16 @@ public class FileModel extends DataModel {
 			e.printStackTrace();
 		}
 	}
-
+	public void renameFile(final String fileName) {
+		File newFile = new File(appContext.getFilesDir().getAbsolutePath() + "/" + fileName);
+		newFile.deleteOnExit();
+		if(tempFile.renameTo(newFile)){
+			pathOnDisk = newFile.getAbsolutePath();
+		} else {
+			Log.e(TAG, "File Rename fail");
+		}
+		
+	}
 	
 	
 }

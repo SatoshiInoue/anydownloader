@@ -7,5 +7,5 @@ package com.satoshiinoue.anydownloader.utilities;
  */
 public class Configuration {
 	
-	public static final boolean ALLOW_LOGGING = true;
+	public static final boolean ALLOW_LOGGING = false;
 }
