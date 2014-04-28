@@ -35,7 +35,7 @@ public class FileModel extends DataModel {
 		try {
 			// TODO: should we be storing images in a subdirectory?
 			String decodedUrl = URLDecoder.decode(url);
-			String tmpFilename = decodedUrl.substring(decodedUrl.lastIndexOf('/') + 1) + ".apk";
+			String tmpFilename = decodedUrl.substring(decodedUrl.lastIndexOf('/') + 1);
 			outputStream = appContext.openFileOutput(tmpFilename, Context.MODE_WORLD_READABLE);
 			tempFile = new File(appContext.getFilesDir().getAbsolutePath() + "/" + tmpFilename);
 			tempFile.deleteOnExit();
